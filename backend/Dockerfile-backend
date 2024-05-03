@@ -1,0 +1,16 @@
+# hospital-backend Dockerfile
+FROM maven:3.6.3-openjdk-17
+
+WORKDIR /app
+
+# Copy only the POM file and download dependencies
+COPY backend/pom.xml /app/
+RUN mvn dependency:go-offline -B
+
+# Copy the entire backend project
+COPY backend/src /app/src
+
+# Build the backend project
+RUN mvn clean install -DskipTests
+
+CMD ["mvn", "spring-boot:run"]

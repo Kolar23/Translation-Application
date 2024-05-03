@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+  translator-frontend:
+    container_name: translator-frontend
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile-frontend
+    volumes:
+      - ./frontend:/app
+    ports:
+      - 3000:3000
+    networks:
+      - mynetwork
+
+  translator-backend:
+    container_name: translator-backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile-backend
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/src/main/resources/GCP-AUTHENTICATION.json
+    volumes:
+      - ./backend:/app
+    ports:
+      - 8080:8080
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
