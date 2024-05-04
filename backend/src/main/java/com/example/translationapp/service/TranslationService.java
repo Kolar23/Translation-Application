@@ -54,7 +54,8 @@ public class TranslationService {
         Detection detection = translate.detect(text);
         return detection.getLanguage();
     }
-
+    
+    // Get the translation history from the databases
     public List<TranslationEntity> getTranslationHistory() {
         Iterable<TranslationEntity> iterable = translationRepository.findAll();
         List<TranslationEntity> history = StreamSupport.stream(iterable.spliterator(), false)

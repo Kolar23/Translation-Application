@@ -11,15 +11,19 @@ function App() {
   const [token, setToken] = useState(null);
 
   const fetchHistory = async () => {
-    try {
-      const response = await axios.get('http://localhost:8080/history', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      setHistory(response.data);
-    } catch (error) {
-      console.error('Error fetching history:', error);
+    if (token) {
+      try {
+        const response = await axios.get('http://localhost:8080/history', {
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            Authorization: `Bearer ${token}`
+          }
+        });
+        setHistory(response.data);
+      } catch (error) {
+        console.error('Error fetching history:', error);
+      }
     }
   };
 
@@ -28,12 +32,20 @@ function App() {
       const response = await axios.post('http://localhost:8080/authenticate', {
         username: 'foo',
         password: 'bar'
+      }, {
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        }
       });
-      setToken(response.data.token);
-      fetchHistory();
+      setToken(response.data.jwt);
     };
     fetchToken();
   }, []);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [token]);
 
 
   const languageMap = {
@@ -74,16 +86,17 @@ function App() {
         targetLanguage: targetLanguage
       }, {
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         }
       });
+      console.log(response.data); // Add this line
       setTranslation(response.data);
       fetchHistory();
     } catch (error) {
       console.error('Error translating text:', error);
     }
   };
-
 
   const swapLanguages = () => {
     const temp = sourceLanguage;
