@@ -49,7 +49,8 @@ public class TranslationService {
         TranslationEntity translation = new TranslationEntity(originalText, translatedText, sourceLanguage, targetLanguage);
         translationRepository.save(translation);
     }
-
+    
+    // Detect the language of the text
     public String detectLanguage(String text) {
         Detection detection = translate.detect(text);
         return detection.getLanguage();
