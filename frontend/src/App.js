@@ -1,11 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import './App.css';
 
 function App() {
   const [text, setText] = useState('');
   const [translation, setTranslation] = useState('');
   const [sourceLanguage, setSourceLanguage] = useState('en');
   const [targetLanguage, setTargetLanguage] = useState('es');
+  const [history, setHistory] = useState([]);
+
+  const fetchHistory = async () => {
+    try {
+      const response = await axios.get('http://localhost:8080/history');
+      setHistory(response.data);
+    } catch (error) {
+      console.error('Error fetching history:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchHistory();
+  }, []);
 
   const languageMap = {
     'af': 'Afrikaans', 'sq': 'Albanian', 'am': 'Amharic', 'ar': 'Arabic', 
@@ -45,6 +60,7 @@ function App() {
         targetLanguage: targetLanguage
       });
       setTranslation(response.data);
+      fetchHistory();
     } catch (error) {
       console.error('Error translating text:', error);
     }
@@ -57,24 +73,41 @@ function App() {
   };
 
   return (
-    <div className="App" style={{ fontFamily: 'Arial', maxWidth: '600px', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-      <header className="App-header" style={{ padding: '20px', backgroundColor: '#f0f0f0', borderRadius: '10px', width: '100%' }}>
-        <h1 style={{ textAlign: 'center', color: '#4285F4' }}>Translation App</h1>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center', width: '100%' }}>
-          <select value={sourceLanguage} onChange={e => setSourceLanguage(e.target.value)} style={{ width: '45%', height: '40px', fontSize: '16px', borderRadius: '5px' }}>
+    <div className="App">
+      <header className="App-header">
+        <h1>Translation App</h1>
+        <div className="language-selection">
+          <select className="language-dropdown" value={sourceLanguage} onChange={e => setSourceLanguage(e.target.value)}>
             {Object.entries(languageMap).map(([code, name]) => <option key={code} value={code}>{name}</option>)}
           </select>
-          <button onClick={swapLanguages} style={{ width: '10%', height: '40px', backgroundColor: '#4285F4', color: 'white', fontSize: '16px', border: 'none', borderRadius: '5px' }}>Swap</button>
-          <select value={targetLanguage} onChange={e => setTargetLanguage(e.target.value)} style={{ width: '45%', height: '40px', fontSize: '16px', borderRadius: '5px' }}>
+          <button className="swap-button" onClick={swapLanguages}>Swap</button>
+          <select className="language-dropdown" value={targetLanguage} onChange={e => setTargetLanguage(e.target.value)}>
             {Object.entries(languageMap).map(([code, name]) => <option key={code} value={code}>{name}</option>)}
           </select>
         </div>
-        <textarea value={text} onChange={e => setText(e.target.value)} style={{ width: '96%', height: '40px', marginBottom: '20px', fontSize: '16px', padding: '10px', borderRadius: '5px' }} />
-        <button onClick={handleTranslate} style={{ width: '100%', height: '40px', marginBottom: '20px', backgroundColor: '#4285F4', color: 'white', fontSize: '16px', border: 'none', borderRadius: '5px' }}>Translate</button>
-        <textarea value={translation} readOnly style={{ width: '96%', height: '40px', backgroundColor: '#e0e0e0', fontSize: '16px', padding: '10px', borderRadius: '5px' }} />
+        <textarea className="input-text" value={text} onChange={e => setText(e.target.value)} />
+        <button className="translate-button" onClick={handleTranslate}>Translate</button>
+        <textarea className="output-text" value={translation} readOnly />
       </header>
-    </div>
-  );
+      <h2>Translation History</h2>
+      <table className="history-table">
+        <thead>
+          <tr>
+            <th>Original</th>
+            <th>Translated To</th>
+          </tr>
+        </thead>
+        <tbody>
+          {history.map((item, index) => (
+            <tr key={index}>
+              <td>{item.originalText} ({item.sourceLanguage})</td>
+              <td>{item.translatedText} ({item.targetLanguage})</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      </div>
+      );
 }
 
 export default App;

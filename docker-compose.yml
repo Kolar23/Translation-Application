@@ -27,6 +27,18 @@ services:
     networks:
       - mynetwork
 
+  translator-database:
+    container_name: translator-database
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: "STRONG@PASSWORD123"
+    ports:
+      - 1433:1433
+    networks:
+      - mynetwork
+    user: root
+
 networks:
   mynetwork:
     driver: bridge
