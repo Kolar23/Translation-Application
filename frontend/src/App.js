@@ -8,10 +8,15 @@ function App() {
   const [sourceLanguage, setSourceLanguage] = useState('en');
   const [targetLanguage, setTargetLanguage] = useState('es');
   const [history, setHistory] = useState([]);
+  const [token, setToken] = useState(null);
 
   const fetchHistory = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/history');
+      const response = await axios.get('http://localhost:8080/history', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       setHistory(response.data);
     } catch (error) {
       console.error('Error fetching history:', error);
@@ -19,8 +24,17 @@ function App() {
   };
 
   useEffect(() => {
-    fetchHistory();
+    const fetchToken = async () => {
+      const response = await axios.post('http://localhost:8080/authenticate', {
+        username: 'foo',
+        password: 'bar'
+      });
+      setToken(response.data.token);
+      fetchHistory();
+    };
+    fetchToken();
   }, []);
+
 
   const languageMap = {
     'af': 'Afrikaans', 'sq': 'Albanian', 'am': 'Amharic', 'ar': 'Arabic', 
@@ -58,6 +72,10 @@ function App() {
         text: text,
         sourceLanguage: sourceLanguage,
         targetLanguage: targetLanguage
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       setTranslation(response.data);
       fetchHistory();
@@ -65,6 +83,7 @@ function App() {
       console.error('Error translating text:', error);
     }
   };
+
 
   const swapLanguages = () => {
     const temp = sourceLanguage;
