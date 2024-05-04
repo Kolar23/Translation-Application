@@ -5,10 +5,13 @@ import './App.css';
 function App() {
   const [text, setText] = useState('');
   const [translation, setTranslation] = useState('');
-  const [sourceLanguage, setSourceLanguage] = useState('en');
+  const [sourceLanguage, setSourceLanguage] = useState('detect');
   const [targetLanguage, setTargetLanguage] = useState('es');
   const [history, setHistory] = useState([]);
   const [token, setToken] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
   const fetchHistory = async () => {
     if (token) {
@@ -26,27 +29,6 @@ function App() {
       }
     }
   };
-
-  useEffect(() => {
-    const fetchToken = async () => {
-      const response = await axios.post('http://localhost:8080/authenticate', {
-        username: 'foo',
-        password: 'bar'
-      }, {
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*"
-        }
-      });
-      setToken(response.data.jwt);
-    };
-    fetchToken();
-  }, []);
-
-  useEffect(() => {
-    fetchHistory();
-  }, [token]);
-
 
   const languageMap = {
     'af': 'Afrikaans', 'sq': 'Albanian', 'am': 'Amharic', 'ar': 'Arabic', 
@@ -104,14 +86,53 @@ function App() {
     setTargetLanguage(temp);
   };
 
+  const handleLogin = async () => {
+    try {
+      const response = await axios.post('http://localhost:8080/authenticate', {
+        username: username,
+        password: password
+      }, {
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        }
+      });
+  
+      if (response.status === 200) {
+        setToken(response.data.jwt);
+        setIsLoggedIn(true);
+      } 
+    } catch (error) {
+      alert('Invalid username or password');
+    }
+  };
+  
+  if (!isLoggedIn) {
+    return (
+      <div className="login-container">
+        <div className="login-box">
+          <h2 className="login-title">Login</h2>
+          <div className="input-group">
+            <input type="text" placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} />
+          </div>
+          <div className="input-group">
+            <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} />
+          </div>
+          <button className="login-button" onClick={handleLogin}>Login</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="App">
       <header className="App-header">
         <h1>Translation App</h1>
         <div className="language-selection">
-          <select className="language-dropdown" value={sourceLanguage} onChange={e => setSourceLanguage(e.target.value)}>
-            {Object.entries(languageMap).map(([code, name]) => <option key={code} value={code}>{name}</option>)}
-          </select>
+        <select className="language-dropdown" value={sourceLanguage} onChange={e => setSourceLanguage(e.target.value)}>
+        <option value="detect">Detect Language</option>
+          {Object.entries(languageMap).map(([code, name]) => <option key={code} value={code}>{name}</option>)}
+        </select>
           <button className="swap-button" onClick={swapLanguages}>Swap</button>
           <select className="language-dropdown" value={targetLanguage} onChange={e => setTargetLanguage(e.target.value)}>
             {Object.entries(languageMap).map(([code, name]) => <option key={code} value={code}>{name}</option>)}
